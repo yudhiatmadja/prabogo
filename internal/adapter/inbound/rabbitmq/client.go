@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 
+	"github.com/palantir/stacktrace"
+
 	"prabogo/internal/domain"
 	"prabogo/internal/model"
 	inbound_port "prabogo/internal/port/inbound"
@@ -29,17 +31,17 @@ func (h *clientAdapter) Upsert(a any) bool {
 	var payload []model.ClientInput
 	err := json.Unmarshal(msg, &payload)
 	if err != nil {
-		log.WithContext(ctx).Errorf("client upsert error %s: %s", err.Error(), string(msg))
+		log.WithContext(ctx).Errorf("message client upsert failed: %s", err.Error())
 		return true
 	}
 	ctx = context.WithValue(ctx, activity.Payload, payload)
 
 	results, err := h.domain.Client().Upsert(ctx, payload)
 	if err != nil {
-		log.WithContext(ctx).Errorf("client upsert error %s: %s", err.Error(), string(msg))
+		log.WithContext(ctx).Errorf("message client upsert failed: %s", stacktrace.RootCause(err).Error())
 	}
 	ctx = context.WithValue(ctx, activity.Result, results)
 
-	log.WithContext(ctx).Info("client upsert success")
+	log.WithContext(ctx).Info("message client upsert success")
 	return true
 }

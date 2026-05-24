@@ -1,5 +1,7 @@
 package inbound_port
 
+import "prabogo/internal/model"
+
 type ClientHttpPort interface {
 	Upsert(a any) error
 	Find(a any) error
@@ -17,4 +19,8 @@ type ClientCommandPort interface {
 
 type ClientWorkflowPort interface {
 	Upsert()
+}
+
+type ClientMcpPort interface {
+	Find(a any) ([]model.Client, error)
 }

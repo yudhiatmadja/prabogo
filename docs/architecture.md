@@ -12,6 +12,7 @@
 | **Application** | Layer that coordinates activities and orchestrates domain logic.                                     |
 | **REST**        | External entity interacting with the application through an adapter using RESTful APIs.              |
 | **Message Broker** | External entity communicating asynchronously with the application via an adapter for messaging.   |
+| **MCP Client**  | External entity invoking application tools through the Model Context Protocol adapter.                |
 | **Database**    | External entity responsible for data persistence and retrieval, accessed through an adapter.          |
 | **Cache**       | External entity providing fast, temporary data storage, accessed through an adapter.                 |
 
@@ -39,7 +40,7 @@ The main goals of using Hexagonal Architecture are:
 
 ## What
 
-Hexagonal Architecture, also known as the Ports and Adapters pattern, is a software design approach that structures an application so that its core business logic (the domain) is isolated from external systems and technologies. The architecture achieves this by defining clear interfaces, called ports, which specify how the application communicates with the outside world. Adapters implement these ports to connect the core logic to various external components, such as databases, user interfaces, REST APIs, or message brokers.
+Hexagonal Architecture, also known as the Ports and Adapters pattern, is a software design approach that structures an application so that its core business logic (the domain) is isolated from external systems and technologies. The architecture achieves this by defining clear interfaces, called ports, which specify how the application communicates with the outside world. Adapters implement these ports to connect the core logic to various external components, such as databases, user interfaces, REST APIs, message brokers, or MCP clients.
 
 This separation allows the core logic to remain independent, making it easier to test, maintain, and evolve. External systems can be replaced or modified without affecting the business rules, and the application can adapt to new requirements or technologies with minimal changes to its core. Hexagonal Architecture promotes flexibility, scalability, and a clear boundary between the domain and infrastructure, resulting in more robust and adaptable software systems.
 

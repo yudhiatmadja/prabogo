@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"sync"
 
-	"cloud.google.com/go/pubsub"
+	"cloud.google.com/go/pubsub/v2"
 	"google.golang.org/api/option"
 )
 
@@ -43,8 +43,10 @@ func Publish(ctx context.Context, topicName string, data []byte, attrs map[strin
 	if pubsubClient == nil {
 		return "", ErrClientNotInitialized
 	}
-	topic := pubsubClient.Topic(topicName)
-	result := topic.Publish(ctx, &pubsub.Message{
+	publisher := pubsubClient.Publisher(topicName)
+	defer publisher.Stop()
+
+	result := publisher.Publish(ctx, &pubsub.Message{
 		Data:       data,
 		Attributes: attrs,
 	})
@@ -57,7 +59,7 @@ func Subscribe(ctx context.Context, subscriptionName string, handler func(ctx co
 	if pubsubClient == nil {
 		return ErrClientNotInitialized
 	}
-	sub := pubsubClient.Subscription(subscriptionName)
+	sub := pubsubClient.Subscriber(subscriptionName)
 
 	// Set max outstanding messages from env
 	maxOutstanding := 5

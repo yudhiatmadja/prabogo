@@ -29,8 +29,8 @@ Prabogo MUST strictly follow the Ports and Adapters (Hexagonal Architecture) pat
   between the domain and the outside world.
 - **Adapters** in `adapter/inbound/` and `adapter/outbound/` implement ports and MUST NOT contain
   business logic — only translation and delegation.
-- External technologies (PostgreSQL, RabbitMQ, Redis, Fiber, Temporal) MUST be isolated behind
-  outbound port interfaces so they can be replaced without touching domain code.
+- External technologies (PostgreSQL, RabbitMQ, Redis, Fiber, Temporal, MCP) MUST be isolated behind
+  port interfaces so they can be replaced without touching domain code.
 - No circular imports are permitted across layers.
 
 ### II. Dependency Injection & No Global State
@@ -67,8 +67,8 @@ Prabogo MUST remain a lean, idiomatic Go framework:
 
 - YAGNI: implement only what is required by the current spec. No speculative abstractions.
 - Follow standard Go naming conventions: `camelCase` for unexported, `PascalCase` for exported symbols.
-- Makefile targets MUST be used for code generation, testing, and build automation.
-- Go version MUST be >= 1.24.0 as declared in `go.mod`.
+- `prabogo-cli` commands MUST be used for code generation, testing, and build automation.
+- Go version MUST be >= 1.25.0 as declared in `go.mod`.
 - Dependencies MUST be justified; avoid adding transitive complexity without clear benefit.
 
 ## Architecture Standards
@@ -80,6 +80,7 @@ The following technology choices are locked for the current major version:
 | HTTP server      | Fiber v2             | `adapter/inbound/fiber/`        |
 | Message broker   | RabbitMQ (amqp091)   | `adapter/inbound/rabbitmq/`     |
 | Workflow engine  | Temporal             | `adapter/inbound/temporal/`     |
+| MCP server       | MCP Go SDK           | `adapter/inbound/mcp/`          |
 | Database         | PostgreSQL (lib/pq)  | `adapter/outbound/postgres/`    |
 | Cache            | Redis                | `adapter/outbound/redis/`       |
 | Migrations       | Goose v3             | `internal/migration/postgres/`  |
@@ -93,7 +94,7 @@ The port interface MUST NOT change for a replacement unless a minor or major ver
 1. **Spec first**: All features begin with a spec via `/speckit.specify` before any code is written.
 2. **Plan before implementing**: Run `/speckit.plan` to produce design artifacts before tasks.
 3. **Tasks drive implementation**: Use `/speckit.tasks` and `/speckit.implement` for structured execution.
-4. **Tests gate merges**: All domain unit tests MUST pass (`make test`) before a feature is considered done.
+4. **Tests gate merges**: All domain unit tests MUST pass (`prabogo-cli test`) before a feature is considered done.
 5. **Docker for infrastructure**: External services MUST be started via `docker-compose.yml` for local
    development and integration tests.
 6. **No force-push to `master`**: The main branch is protected; changes go through feature branches.
@@ -110,4 +111,4 @@ This constitution supersedes all informal coding conventions documented elsewher
 All PRs MUST pass the Constitution Check gate defined in the plan template before merging.
 Complexity deviations from Principle V MUST be documented in the plan's Complexity Tracking table.
 
-**Version**: 1.0.0 | **Ratified**: 2026-05-03 | **Last Amended**: 2026-05-03
+**Version**: 1.2.0 | **Ratified**: 2026-05-03 | **Last Amended**: 2026-05-24

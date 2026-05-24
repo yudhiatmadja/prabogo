@@ -28,7 +28,7 @@ func (a *clientAdapter) Upsert() {
 
 	w, err := temporal.NewWorker(ctx, model.UpsertClientWorkflowName)
 	if err != nil {
-		log.WithContext(ctx).Error("Unable to create worker", err)
+		log.WithContext(ctx).Error("unable to create worker", err)
 		return
 	}
 
@@ -40,7 +40,7 @@ func (a *clientAdapter) Upsert() {
 
 	err = w.Run(worker.InterruptCh())
 	if err != nil {
-		log.WithContext(ctx).Error("Unable to start worker", err)
+		log.WithContext(ctx).Error("unable to start worker", err)
 		return
 	}
 }

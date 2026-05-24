@@ -4,16 +4,17 @@ import (
 	"context"
 	"os"
 	"os/signal"
-	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/joho/godotenv"
 	joonix "github.com/joonix/log"
 	_ "github.com/lib/pq"
+	"github.com/modelcontextprotocol/go-sdk/mcp"
 	"github.com/sirupsen/logrus"
 
 	command_inbound_adapter "prabogo/internal/adapter/inbound/command"
 	fiber_inbound_adapter "prabogo/internal/adapter/inbound/fiber"
+	mcp_inbound_adapter "prabogo/internal/adapter/inbound/mcp"
 	rabbitmq_inbound_adapter "prabogo/internal/adapter/inbound/rabbitmq"
 	temporal_inbound_adapter "prabogo/internal/adapter/inbound/temporal"
 	postgres_outbound_adapter "prabogo/internal/adapter/outbound/postgres"
@@ -27,6 +28,7 @@ import (
 	"prabogo/utils/activity"
 	"prabogo/utils/database"
 	"prabogo/utils/log"
+	mcp_utils "prabogo/utils/mcp"
 	"prabogo/utils/rabbitmq"
 	"prabogo/utils/redis"
 )
@@ -36,6 +38,7 @@ var httpDriverList = []string{"fiber"}
 var messageDriverList = []string{"rabbitmq"}
 var cacheDriverList = []string{"redis"}
 var workflowDriverList = []string{"temporal"}
+var mcpTransportList = []string{"http", "stdio"}
 var outboundDatabaseDriver string
 var outboundMessageDriver string
 var outboundCacheDriver string
@@ -43,6 +46,7 @@ var outboundWorkflowDriver string
 var inboundHttpDriver string
 var inboundMessageDriver string
 var inboundWorkflowDriver string
+var inboundMcpTransport string
 
 type App struct {
 	ctx    context.Context
@@ -61,6 +65,8 @@ func NewApp() *App {
 	inboundHttpDriver = os.Getenv("INBOUND_HTTP_DRIVER")
 	inboundMessageDriver = os.Getenv("INBOUND_MESSAGE_DRIVER")
 	inboundWorkflowDriver = os.Getenv("INBOUND_WORKFLOW_DRIVER")
+	inboundMcpTransport = os.Getenv("INBOUND_MCP_TRANSPORT")
+
 	domain := domain.NewDomain(
 		databaseOutbound(ctx),
 		messageOutbound(ctx),
@@ -82,6 +88,8 @@ func (a *App) Run(option string) {
 		a.messageInbound()
 	case "workflow":
 		a.workflowInbound()
+	case "mcp":
+		a.mcpInbound()
 	default:
 		a.commandInbound()
 	}
@@ -97,7 +105,7 @@ func databaseOutbound(ctx context.Context) outbound_port.DatabasePort {
 		os.Exit(1)
 	}
 
-	isUseMigration := true
+	isUseMigration := false
 	db := database.InitDatabase(ctx, outboundDatabaseDriver, isUseMigration)
 
 	switch outboundDatabaseDriver {
@@ -174,20 +182,26 @@ func (a *App) httpInbound() {
 		app := fiber.New()
 		inboundHttpAdapter := fiber_inbound_adapter.NewAdapter(a.domain)
 		fiber_inbound_adapter.InitRoute(ctx, app, inboundHttpAdapter)
+
+		shutdownSignal := make(chan os.Signal, 1)
+		signal.Notify(shutdownSignal, os.Interrupt)
+		defer signal.Stop(shutdownSignal)
+
 		go func() {
-			if err := app.Listen(":" + os.Getenv("SERVER_PORT")); err != nil {
-				log.WithContext(ctx).Fatalf("failed to listen and serve: %+v", err)
+			<-shutdownSignal
+			log.WithContext(ctx).Info("gracefully shutting down http server")
+
+			if err := app.Shutdown(); err != nil {
+				log.WithContext(ctx).Errorf("failed to shutdown http server: %+v", err)
 			}
 		}()
+
+		if err := app.Listen(":" + os.Getenv("SERVER_PORT")); err != nil {
+			log.WithContext(ctx).Fatalf("failed to listen and serve: %+v", err)
+		}
+
+		log.WithContext(ctx).Info("http server stopped")
 	}
-
-	ctx, shutdown := context.WithTimeout(ctx, 5*time.Second)
-	defer shutdown()
-	quit := make(chan os.Signal, 1)
-	signal.Notify(quit, os.Interrupt, os.Interrupt)
-	<-quit
-
-	log.WithContext(ctx).Info("http server stopped")
 }
 
 func (a *App) messageInbound() {
@@ -221,6 +235,29 @@ func (a *App) workflowInbound() {
 	case "temporal":
 		inboundWorkflowAdapter := temporal_inbound_adapter.NewAdapter(a.domain)
 		temporal_inbound_adapter.InitRoute(ctx, os.Args, inboundWorkflowAdapter)
+	}
+}
+
+func (a *App) mcpInbound() {
+	ctx := a.ctx
+	if !utils.IsInList(mcpTransportList, inboundMcpTransport) {
+		log.WithContext(ctx).Fatal("mcp transport is not supported")
+		os.Exit(1)
+	}
+
+	server := mcp.NewServer(&mcp.Implementation{
+		Name:    "prabogo-mcp",
+		Version: "1.0.0",
+	}, nil)
+
+	inboundMcpAdapter := mcp_inbound_adapter.NewAdapter(a.domain)
+	mcp_inbound_adapter.InitRoute(ctx, server, inboundMcpAdapter)
+
+	switch inboundMcpTransport {
+	case "http":
+		mcp_utils.RunHTTPServer(ctx, server)
+	case "stdio":
+		mcp_utils.RunStdioServer(ctx, server)
 	}
 }
 

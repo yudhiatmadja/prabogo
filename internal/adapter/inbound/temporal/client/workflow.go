@@ -28,7 +28,7 @@ func (g *clientWorkflow) UpsertClientWorkflow(ctx workflow.Context, input model.
 	logger := workflow.GetLogger(ctx)
 	workflowInfo := workflow.GetInfo(ctx)
 
-	logger.Info("Workflow started", "WorkflowID", workflowInfo.WorkflowExecution.ID)
+	logger.Info("workflow started", "workflowID", workflowInfo.WorkflowExecution.ID)
 
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: 5 * time.Minute,
@@ -42,8 +42,8 @@ func (g *clientWorkflow) UpsertClientWorkflow(ctx workflow.Context, input model.
 		[]model.ClientInput{input},
 	).Get(ctx, &results)
 	if err != nil {
-		logger.Error("UpsertClient activity failed", "Error", err)
-		return "Failed to upsert client", err
+		logger.Error("upsert client activity failed", "error", err)
+		return "failed to upsert client", err
 	}
 
 	var bearerKey string
@@ -51,8 +51,8 @@ func (g *clientWorkflow) UpsertClientWorkflow(ctx workflow.Context, input model.
 		bearerKey = results[0].BearerKey
 	}
 
-	successMessage := "Bearer key: " + bearerKey
-	logger.Info(successMessage, "WorkflowID", workflowInfo.WorkflowExecution.ID)
+	successMessage := "bearer key: " + bearerKey
+	logger.Info(successMessage, "workflowID", workflowInfo.WorkflowExecution.ID)
 
 	return successMessage, nil
 }

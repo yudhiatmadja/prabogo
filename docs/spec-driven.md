@@ -55,7 +55,7 @@ Generate a custom validation checklist to ensure your specification is complete,
 Provide your tech stack and architecture choices. Be specific about technologies, databases, frameworks, and technical constraints.
 
 ```
-/speckit.plan This uses the Go Prabogo framework with PostgreSQL for storage, RabbitMQ for async messaging, Fiber for HTTP endpoints, and a hexagonal architecture pattern.
+/speckit.plan This uses the Go Prabogo framework with PostgreSQL for storage, RabbitMQ for async messaging, Fiber for HTTP endpoints, MCP for AI tool access, and a hexagonal architecture pattern.
 ```
 
 ### 6. Break Down into Actionable Tasks

@@ -24,9 +24,9 @@ type ClientInput struct {
 }
 
 type ClientFilter struct {
-	IDs        []int    `json:"ids"`
-	Names      []string `json:"names"`
-	BearerKeys []string `json:"bearer_keys"`
+	IDs        []int    `json:"ids,omitempty"`
+	Names      []string `json:"names,omitempty"`
+	BearerKeys []string `json:"bearer_keys,omitempty"`
 }
 
 func ClientPrepare(v *ClientInput) {

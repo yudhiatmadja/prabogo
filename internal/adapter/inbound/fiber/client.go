@@ -2,6 +2,7 @@ package fiber_inbound_adapter
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/palantir/stacktrace"
@@ -40,7 +41,7 @@ func (h *clientAdapter) Upsert(a any) error {
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(model.Response{
 			Success: false,
-			Error:   stacktrace.RootCause(err).Error(),
+			Error:   fmt.Sprintf("http client upsert failed: %s", stacktrace.RootCause(err).Error()),
 		})
 	}
 
@@ -66,7 +67,7 @@ func (h *clientAdapter) Find(a any) error {
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(model.Response{
 			Success: false,
-			Error:   stacktrace.RootCause(err).Error(),
+			Error:   fmt.Sprintf("http client find by filter failed: %s", stacktrace.RootCause(err).Error()),
 		})
 	}
 
@@ -92,7 +93,7 @@ func (h *clientAdapter) Delete(a any) error {
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(model.Response{
 			Success: false,
-			Error:   stacktrace.RootCause(err).Error(),
+			Error:   fmt.Sprintf("http client delete by filter failed: %s", stacktrace.RootCause(err).Error()),
 		})
 	}
 
