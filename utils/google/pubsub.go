@@ -28,7 +28,7 @@ func InitMessage(ctx context.Context) error {
 			err = ErrMissingCredentials
 			return
 		}
-		pubsubClient, err = pubsub.NewClient(ctx, projectID, option.WithCredentialsFile(credsFile))
+		pubsubClient, err = pubsub.NewClient(ctx, projectID, option.WithAuthCredentialsFile(option.ServiceAccount, credsFile))
 	})
 	return err
 }
