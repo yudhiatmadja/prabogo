@@ -331,6 +331,20 @@ To check intermittent test failure due to mock. when in doubt, use `-t 1000`
 retry -d 0 -t 100 -u fail -- go test -coverprofile=coverage.profile -cover ./internal/domain/... -count=1
 ```
 
+### Integration tests
+
+Integration tests are tagged with `integration` and require Docker to spin up external dependencies (such as PostgreSQL via Testcontainers). Since they are excluded by default, you must pass the build tag when running them:
+
+```sh
+go test -tags integration ./tests/integration/...
+```
+
+To run all tests (unit + integration) together:
+
+```sh
+go test -tags integration ./...
+```
+
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
