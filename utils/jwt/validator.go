@@ -35,8 +35,8 @@ type jwksCacheEntry struct {
 }
 
 var (
-	jwksCache   = make(map[string]*jwksCacheEntry)
-	jwksCacheMu sync.RWMutex
+	jwksCache    = make(map[string]*jwksCacheEntry)
+	jwksCacheMu  sync.RWMutex
 	jwksCacheTTL = 5 * time.Minute
 )
 
